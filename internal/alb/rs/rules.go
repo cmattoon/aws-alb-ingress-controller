@@ -132,7 +132,7 @@ func (r Rules) FindByPriority(priority *string) (int, *Rule) {
 
 // FindUnusedTGs returns a list of TargetGroups that are no longer referncd by any of
 // the rules passed into this method.
-func (r Rules) FindUnusedTGs(tgs tg.TargetGroups) tg.TargetGroups {
+func (r Rules) FindUnusedTGs(tgs tg.TargetGroups, defaultArn *string) tg.TargetGroups {
 	var unused tg.TargetGroups
 
 TG:
@@ -141,6 +141,10 @@ TG:
 
 		arn := t.CurrentARN()
 		if arn == nil {
+			continue
+		}
+
+		if defaultArn != nil && *arn == *defaultArn {
 			continue
 		}
 
@@ -163,19 +167,6 @@ TG:
 	}
 
 	return unused
-}
-
-// DefaultRule returns the ALBs default rule
-func (r Rules) DefaultRule() *Rule {
-	for _, rule := range r {
-		if rule.rs.desired == nil {
-			continue
-		}
-		if *rule.rs.desired.IsDefault {
-			return rule
-		}
-	}
-	return nil
 }
 
 // StripDesiredState removes the desired state from all Rules in the slice.
